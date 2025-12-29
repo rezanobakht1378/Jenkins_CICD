@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+  jenkins:
+    image: myjenkins
+    privileged: true
+    user: root
+    restart: always
+    ports:
+      - 9080:8080
+      - 50000:50000
+    container_name: jenkins
+    networks:
+      - jenkins-network
+    volumes:
+      - jenkins-log:/var/log/jenkins
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+  python_agent:
+    image: python_agent
+    hostname: agent-python
+    restart: always
+    privileged: true
+    user: root
+    container_name: python_agent
+    ports:
+      - "4444:22"
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvziJiO9/GcI1Vhc6npZgaoIzR4Z85qcj78FKQfaTrK user20@vms-sale-73
+    networks:
+      - jenkins-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  node_agent:
+    image: node-agent
+    #build:
+    #  context: ./node_agent
+    #  dockerfile: Dockerfile
+    hostname: agent-node
+    restart: always
+    privileged: true
+    user: root
+    container_name: node_agent
+    ports:
+      - "4445:22"
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvziJiO9/GcI1Vhc6npZgaoIzR4Z85qcj78FKQfaTrK user20@vms-sale-73
+    networks:
+      - jenkins-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+
+volumes:
+  jenkins-log:
+    external: true
+    name: jenkins-log
+  jenkins-data:
+    external: true
+    name: jenkins-data
+networks:
+  jenkins-network:
